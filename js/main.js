@@ -4,7 +4,8 @@ var cart_clients   = []; // customers
 var cart_computations_single = []; // cart computation like total sum of cart items vat exempt
 var cart_computations_all = []; // cart computation like total sum of cart items vat exempt
 var discount_container = []; // discount per person
-var referral_container = [];
+var referral_container = []; // referral discount 
+var will_pay = []; // distrubution of payment and balance 
 // search autocomplete for customer
 $("#customer").autocomplete({
 	source:function(request,response){

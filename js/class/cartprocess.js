@@ -72,7 +72,8 @@ CartProcess.prototype ={
 			var price_sum = 0;
 			var vatable_sum = 0;
 			var total_discount = 0;
-			
+			var disc_code = "";
+			var disc_remark = "";
 			for(var i in cart){
 				if(cart[i].customerid == custno){
 					bookfee_sum =  bookfee_sum + cart[i].bookfee;
@@ -84,18 +85,22 @@ CartProcess.prototype ={
 						var fordiscount = lessonfee_sum + bookfee_sum;
 						var discount_percent = discount_container[custno].discount;
 						total_discount  = fordiscount * discount_percent;
+						disc_code =  discount_container[custno].keyword;
+						disc_remark =  discount_container[custno].desc;
 					}	
 				}
 			}
-
 			var pushItem = {
 				custid: custno,
 				bookfee: bookfee_sum,
-				lessonfee: lessonfee_sum,
+				lessonfee: lessonfee_sum - total_discount,
 				otherfee: otherfee_sum,
 				subtotal: price_sum,
 				vatable: vatable_sum,
-				discount: total_discount 
+				disckey: disc_code,
+				discremark:disc_remark,
+				discount: total_discount,
+				fintotal: price_sum - total_discount
 			}
 			cart_computations_single.push(pushItem);
 		}// customer

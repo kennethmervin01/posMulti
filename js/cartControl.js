@@ -128,8 +128,6 @@ $("#compute-now").one("click",function(){
 	});
 });
 
-
-
 $(".pay-option").click(function(){
 	var	ptype = $(this).data(); 
 	var po = new PaymentOptions(ptype.type,ptype.title);
@@ -140,6 +138,7 @@ $(".pay-option").click(function(){
 
 $(".payment-container").on("click","#submit-payment",function(){
 	var payment = [];	
+	var paymentProcess = new PaymentProcess();
 	$(".payment-form :input").each(function(){
 		var input = $(this);
 		var names  = input.attr("name");
@@ -154,7 +153,9 @@ $(".payment-container").on("click","#submit-payment",function(){
 			payment[names] = val;
 		}
 	});  
-	console.log(payment);
+
+	var credits = paymentProcess.distribute(payment);
+	var payment = paymentProcess.generateData();
 });
 
 
@@ -181,6 +182,7 @@ $(".payment-container").on("keydown","#cheque_no",function(event){
 
 
 /*************************** Function requirements for cart ui *************************************/
+
 function draw_preselect_items(item){
 	 html = `
 		<a style="display:block; text-decoration:none;"><img width="60px" height="70px" src="http://localhost/cshop/page/ajax/`+ item.icon +`" />
