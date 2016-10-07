@@ -1,0 +1,15 @@
+[
+	{
+		"keyword":"DBSL",
+		"desc":"8% Discount-Sibling",
+		"type":"1",
+		"discount":".08"
+	},
+
+	{
+		"keyword":"DS16",
+		"desc":"30% Dan Certification",
+		"type":"1",
+		"discount":".30"
+	}	
+]

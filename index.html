@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+<title>CMA Shop Payments</title>
+
+<!-- Bootstrap -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="js/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+  <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+<![endif]-->
+<style>
+  .payment-options{ border: 1px solid black;}
+  #order-items { margin-top:20px;}
+  .grayout {
+    opacity: 0.7; /* Real browsers */
+    filter: alpha(opacity = 70); /* MSIE */
+  }
+ .tab-content button { margin-top:10px;} 
+ .customer-draw {cursor:pointer;} 
+ .active-customer {  
+    -webkit-box-shadow:0 0 20px #1c3f93; 
+    -moz-box-shadow: 0 0 20px #1c3f93; 
+    box-shadow:0 0 20px #1c3f93;
+  }
+ .ui-dialog-titlebar{ background-color: #1c3f93; color:#fff;}
+
+@media print {
+   .hideprint {display: none; } 
+   .grayout {
+    opacity:1; /* Real browsers */
+    filter: alpha(opacity = 100); /* MSIE */
+  }
+}
+
+
+</style>
+
+</head>
+<body>
+  <nav class="navbar navbar-inverse ">
+    <div class="container">
+      <div class="nav-header">
+        <a class="navbar-brand" href="#">CMA SHOP</a>
+      </div>
+    </div>
+  </nav>  
+  <div class="container hide-in-payment">
+    <div class="row hideprint">
+      <div class="col-sm-6">
+        <div class="form-group">
+          <label for="customer_id">Customer:</label>
+          <input type="text" class="form-control" id="customer">
+          <input type="hidden" id="customer_id">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container" id="main-process-container">
+    <div class="row">
+     
+      <div class="customer-container col-md-8">
+         <br /> 
+         <button class="btn hideprint btn-info btn-lg" style="display:none;" id="compute-now">PROCEED TO PAYMENT</button><!--- WHERE Customer Will Prepend -->
+      </div>
+      
+      <div class="available-items-container  hideprint hide-in-payment col-md-4">
+        
+        <ul class="nav nav-pills">
+          <li class="active"><a data-toggle="pill" href="#fee-sale">FEES</a></li>
+          <li><a data-toggle="pill" href="#bundle-sale">BUNDLE</a></li>
+          <li><a data-toggle="pill" href="#book-sale">ITEMS</a></li>
+          <li><a data-toggle="pill" href="#discount-sale">DISCOUNT</a></li>
+        </ul>
+        
+        <div class="tab-content">
+          <div id="fee-sale" class="tab-pane fade in active">
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="MODREG">MODREG</button>
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="MODFLEX">MODFLEX</button>
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="REGFEE">REGFEE</button>
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="MODREG" data-sku1="REGFEE">MODREG + REGFEE</button>
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="MODFEESF">MODFEESF</button>
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="REVFEE">REVFEE</button>
+            <button class="btn btn-warning btn-lg clickable-item" data-sku0="EXAMFEE">EXAMFEE</button>
+          </div>
+          
+          <div id="bundle-sale" class="tab-pane fade">
+            <button class="btn btn-warning btn-lg click-bundle" data-sku ="MODREG"  data-qty="12" data-disc = "M12M"  data-discpercent=".10" data-discdesc="12 Months Package">MODREG <br /> 12 MONTHS</button>
+            <button class="btn btn-warning btn-lg click-bundle" data-sku ="MODREG"  data-qty="6"  data-disc = "M6M"   data-discpercent=".05" data-discdesc="6 Months Package">MODREG  <br /> 6 MONTHS</button>
+            <button class="btn btn-warning btn-lg click-bundle" data-sku ="MODFLEX" data-qty="12" data-disc = "M12M"  data-discpercent=".10" data-discdesc="12 Months Package">MODFLEX <br /> 12 MONTHS</button>
+            <button class="btn btn-warning btn-lg click-bundle" data-sku ="MODFLEX" data-qty="6"  data-disc = "M6M"   data-discpercent=".05" data-discdesc="6 Months Package">MODFLEX <br /> 6 MONTHS</button>
+          </div>
+
+          
+          <div id="book-sale" class="tab-pane fade">
+            <div class="form-group">
+              <label for="customer_id">Search:</label>
+              <input type="text" class="form-control" id="search-book">
+            </div> 
+          </div>
+          <div id="discount-sale" class="tab-pane fade"></div>
+        </div>
+      </div>
+
+      
+      <div class="payment-options col-md-4" style="display:none; padding-bottom:15px;">
+        <h4>Subtotal&nbsp;: <span class="subtotal_total_cart"></span></h4>
+        <h4>Discount:       <span class="discount_total_cart"></span></h4>
+        <h3 style="text-decoration:underline;">Total <span class="super_total_cart"></span> </h3>
+        <hr />
+        <h5>Select Payment Option</h5>
+        <button class="btn btn-sm btn-primary pay-option" data-title="Cash" data-type="cash">Cash </button>
+        <button class="btn btn-sm btn-primary pay-option" data-title="Direct Deposit"data-type="directdeposit">Direct Deposit</button>
+        <button class="btn btn-sm btn-primary pay-option" data-title="Cheque" data-type="cheque">Check</button>
+        <button class="btn btn-sm btn-primary pay-option" data-title= "PDC" data-type="pdc">PDC</button>
+        <br /><br />
+        <div class="payment-form">
+        <table class="table table-bordered payment-container"></table>
+        </div>
+      </div>
+    </div>
+  </div> <!--main-process-container-->
+
+  <div class="dialog" title=""><p></p></div>
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>-->
+<script src="js/jquery.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/jquery-ui/jquery-ui.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/class/carthelper.js"></script>
+<script src="js/class/itemcart.js"></script>
+<script src="js/class/cartprocess.js"></script>
+<script src="js/cartControl.js"></script>
+</body>
+</html>
