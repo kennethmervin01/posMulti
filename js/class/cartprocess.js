@@ -63,7 +63,6 @@ CartProcess.prototype ={
 	computeSingle :function(){ // generate cart computations
 		var custid = cart_clients;
 		var cart   = cart_container;	
-		
 		for (var i in custid){
 			custno = custid[i];
 			var bookfee_sum = 0;
@@ -74,6 +73,8 @@ CartProcess.prototype ={
 			var total_discount = 0;
 			var disc_code = "";
 			var disc_remark = "";
+			var ref_tot  = 0;
+			var ref_qty = 0;
 			for(var i in cart){
 				if(cart[i].customerid == custno){
 					bookfee_sum =  bookfee_sum + cart[i].bookfee;
@@ -87,20 +88,27 @@ CartProcess.prototype ={
 						total_discount  = fordiscount * discount_percent;
 						disc_code =  discount_container[custno].keyword;
 						disc_remark =  discount_container[custno].desc;
-					}	
+					}
+
+					if(referral_compute[custno]){
+						ref_tot= referral_compute[custno].ref_tot;
+						ref_qty = referral_compute[custno].ref_qty;
+					}
 				}
 			}
 			var pushItem = {
 				custid: custno,
 				bookfee: bookfee_sum,
-				lessonfee: lessonfee_sum - total_discount,
+				lessonfee: lessonfee_sum - (total_discount + ref_tot),
 				otherfee: otherfee_sum,
 				subtotal: price_sum,
 				vatable: vatable_sum,
 				disckey: disc_code,
 				discremark:disc_remark,
 				discount: total_discount,
-				fintotal: price_sum - total_discount
+				refdiscount:ref_tot,
+				refqty: ref_qty,
+				fintotal: price_sum - (total_discount + ref_tot)
 			}
 			cart_computations_single.push(pushItem);
 		}// customer
@@ -119,7 +127,7 @@ CartProcess.prototype ={
 			otherfee  = otherfee  + single_cart[i].otherfee;
 			total  = total  + single_cart[i].subtotal;
 			vatable  = vatable  + single_cart[i].vatable;
-			disctotal = disctotal + single_cart[i].discount;
+			disctotal = disctotal + single_cart[i].discount + single_cart[i].refdiscount ;
 		}
 
 		var cart_all = {
@@ -164,12 +172,12 @@ CartProcess.prototype ={
 		discount.splice(active_id,1);
 		console.log(discount);
 	},
-	addReferral:function(callback){
+	addReferral:function(qty,callback){
 		var trudisc = 0;
 		for(i in cart_container){
 			if(cart_container[i].customerid == active_id){
 				if(cart_container[i].bookfee >= 1 ){
-					referral_container[active_id] = {discount:.08};	
+					referral_container[active_id] = {discount:.08, rfqty:qty};	
 					trudisc = 1;
 					break;	
 				} 
@@ -181,6 +189,3 @@ CartProcess.prototype ={
 	}
 
 } 
-
-
-

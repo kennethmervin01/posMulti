@@ -88,15 +88,14 @@ $(".customer-container").on("click",".remove-discount",function(){
 	cart.totalCart();
 });
 
-
-
 // referral  button
 $(".customer-container").on("click",".referral-but",function(){
-	active_id = $(this).data("activeid");
+	var active_id = $(this).data("activeid");
+	var refqty    = $(this).data("refqty");
 	var mybut = $(this); 
 	var cart =  new ItemCart();
 	var cartProcess = new CartProcess();
-	cartProcess.addReferral(function(request){
+	cartProcess.addReferral(refqty,function(request){
 		if(request == 0){
 			new DialogHelper("Hello Teacher","Please select a MODULE FEE to add a referral discount").createDialog();	
 		} else {
@@ -105,8 +104,6 @@ $(".customer-container").on("click",".referral-but",function(){
 	});
 	cart.totalCart();
 });
-
-
 
 // compute all in cart
 $("#compute-now").one("click",function(){
@@ -134,8 +131,6 @@ $(".pay-option").click(function(){
 	po.draw();
 });
 
-
-
 $(".payment-container").on("click","#submit-payment",function(){
 	var payment = [];	
 	var paymentProcess = new PaymentProcess();
@@ -154,34 +149,35 @@ $(".payment-container").on("click","#submit-payment",function(){
 		}
 	});  
 
+
+
 	var credits = paymentProcess.distribute(payment);
-	var payment = paymentProcess.generateData();
+	paymentProcess.generateData();
 });
 
 
-
-$(".payment-container").on("keydown","#or_payment",function(event){
-	console.log(event.which);
-	if (event.which >= 96 && event.which <= 105 || (event.which == 8) || (event.which == 110) || (event.which == 190)) {
-    	
-  	} else {
-  		event.preventDefault();
-  	}
+$(".payment-container").on("keyup","#or_payment",function(event){
+	var that = $(this);
+	decimal_only(that);
 });
 
-$(".payment-container").on("keydown","#cheque_no",function(event){
-	console.log(event.which);
-	if ((event.which >= 96 && event.which <= 105) || (event.which == 8)  ) {
-    	
-  	}  else {
-  		event.preventDefault();
-  	}
+$(".payment-container").on("keyup","#cheque_no",function(event){
+	var that = $(this);
+	decimal_only(that);
 });
-
-
-
 
 /*************************** Function requirements for cart ui *************************************/
+
+function decimal_only(that){
+	var val = that.val();
+    if(isNaN(val)){
+         val = val.replace(/[^0-9\.]/g,'');
+         if(val.split('.').length>2) 
+             val =val.replace(/\.+$/,"");
+	}
+   	that.val(val); 
+}
+
 
 function draw_preselect_items(item){
 	 html = `
@@ -221,12 +217,12 @@ function add_bundle(bundle,callback){
 	});
 }
 
-function add_cart_ajax(sku,branch){
+function add_cart_ajax(sku,branch,qty=1){
 	var customerID = active_id;
 	$.ajax({
 		url:"php/search-item.php",
 		type:"post",
-		data:{term:sku, branch:branch,method:"get_item"},	
+		data:{term:sku, branch:branch,method:"get_item", qty:qty},	
 		dataType:"json",
 		success:function(j){
 			newItem = new ItemCart(sku,branch).drawItemRow(j);
@@ -237,12 +233,10 @@ function add_cart_ajax(sku,branch){
 	});	
 }
 
-
 function myMoneyFormat(value){
 	var num = value.toFixed(2).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,");
 	return num;
 }	
-
 
 
 /************************************************************************************************/

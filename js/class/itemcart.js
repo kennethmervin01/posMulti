@@ -5,7 +5,7 @@ Method:
 	getDetails - det data in server
 	drawItemrow - draw item in cart and run addToCart from  CartProcess Class 
 **************/
-function ItemCart(sku,branch){
+function ItemCart(sku,branch,qty){
 	this.sku = sku;
 	this.branch = branch;
 	this.desc   = null;
@@ -15,7 +15,7 @@ function ItemCart(sku,branch){
 	this.bookfee  = 0;
 	this.otherfee = 0;  
 	this.totprice = 0;
-	this.qty    = 1;
+	this.qty    = qty;
 	this.vatable = 0;
 	this.cart   = new CartProcess();
 }
@@ -33,23 +33,11 @@ ItemCart.prototype = {
 		this.vatable  = parseFloat(item.vatable);
 		this.qty      = parseFloat(item.qty);
 	},
-	totalCart: function(){
+	preSumCart:function(){
 		var arr = cart_container;
-
-		var discount = 0;
-		var disc_type = 1;
+		var subtotal = 0;
 		var discounted = 0;
-		var disc_tot = 0;
 		var discounted_qty = 0;
-
-		var ref_disc = 0;
-		var ref_discounted =0;
-		var ref_tot = 0;
-		
-		var subtotal = 0;	
-		var tot = 0;
-
-
 		for (var i in arr) {
 			if (arr[i].customerid == active_id){
 				subtotal      += arr[i].totprice;	// calculating sum of all items			
@@ -57,9 +45,15 @@ ItemCart.prototype = {
 				arr[i].bookfee >= 1 ? discounted_qty = parseFloat(arr[i].qty) : void 0; // geting qty of module fees
 			}
 		}
-
 		discounted == 0 ? $("#item-table-" + active_id + " .discountrow").remove() : void 0; // remove  discount row if no modreg
 		discounted == 0 ? this.cart.removeDiscount() : void 0; // remove discount in discount_container
+		discounted == 0 ? $(".next-tier").hide() : $(".next-tier").show() ;
+		return   {subtotal: subtotal,discounted:discounted,discounted_qty:discounted_qty}
+	},
+	preSumDiscount:function(discounted){
+		var discount  = 0;
+		var disc_type = 1;
+		var disc_tot  = 0;
 		if(discount_container[active_id]){ // set discount if true
 			discount  = discount_container[active_id].discount;
 			disc_type = discount_container[active_id].type;
@@ -69,20 +63,48 @@ ItemCart.prototype = {
 			disc_tot = 	discounted * discount;
 		} else {
 			$("#item-table-" + active_id + " .discountrow").remove();
-		}		
-		tot      =  subtotal - disc_tot;
-		$("#item-table-" + active_id + " .discamt").html(disc_tot);
+		}	
+
+		return {discount:discount,disc_type:disc_type,disc_tot:disc_tot} 
+	},
+
+	preSumRef:function(discounted,disc_tot,discounted_qty){
+		var ref_disc = 0;
+		var ref_discounted =0;
+		var ref_tot = 0;
+		var ref_disc_qty = 0;
+
 		if(referral_container[active_id]){
 			$("#item-table-" + active_id + " .discountrefrow").remove();
 			$("#item-table-" + active_id + " tbody tr:last").before("<tr class='discountrefrow'><td colspan='4' style='text-align:center'>Referral Discount</td><td class='rdiscamt'></td></tr>");
 			ref_disc = referral_container[active_id].discount;
+			ref_disc_qty = 	referral_container[active_id].rfqty;
 			ref_discounted = (discounted - disc_tot) / discounted_qty;
-			console.log(discounted_qty);
-			ref_tot		   = ref_discounted * ref_disc;	
+			for(i = 1;  i <= ref_disc_qty; i++){
+				ref_tot_part = ref_discounted * ref_disc;		
+				ref_discounted = ref_discounted - ref_tot_part;
+				ref_tot =  ref_tot + ref_tot_part;
+			}
+			referral_compute[active_id] = {ref_tot:ref_tot,ref_qty:ref_disc_qty};
 		}
-		tot    =  tot - ref_tot; 	
+		
+		console.log(referral_compute);
+		return ref_tot;
+	},
+
+	totalCart: function(){
+		var cart_pre_sum = this.preSumCart();
+		var subtotal = cart_pre_sum.subtotal;	
+		var discounted = cart_pre_sum.discounted;
+		var discounted_qty = cart_pre_sum.discounted_qty;
+		var preSumDiscount = this.preSumDiscount(discounted);
+		var disc_tot = preSumDiscount.disc_tot;
+		var ref_tot = this.preSumRef(discounted,disc_tot,discounted_qty);
+		var tot    = subtotal - (ref_tot + disc_tot); 	
+		$("#item-table-" + active_id + " .discamt").html(disc_tot);	
 		$("#item-table-" + active_id + " .rdiscamt").html(ref_tot);
 		$(".total-" + active_id).html(tot);
+
 	},
 	drawItemRow: function(item){
 		var doNow = CartHelper.checkItemExist(this.sku,item.qty,function(myqty,mysku){
@@ -123,9 +145,6 @@ ItemCart.prototype = {
 		$("#item-table-"+ active_id +" > tbody >tr > td.sku-total-" + sku).html(item_tot);
 		this.totalCart();
 	}
-
-
-	
 
 };
 

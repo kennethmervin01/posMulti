@@ -48,6 +48,8 @@ function get_item($sku,$branch){
 	if( $results[0]['IsBook'] == "Yes"){
 		$vatable = 0;
 	}
+
+
 	echo json_encode(
 		array(
 			"desc"      => $results[0]['Description'],
@@ -58,7 +60,7 @@ function get_item($sku,$branch){
 			"otherfee"  => $fee['otherfee'],
 			"totprice"  => $results[0]['StdCost'],
 			"vatable"   => $vatable,
-			"qty"       => 1
+			"qty"       => $_POST['qty']
 		));	
 }
 

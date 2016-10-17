@@ -5,6 +5,7 @@ var cart_computations_single = []; // cart computation like total sum of cart it
 var cart_computations_all = []; // cart computation like total sum of cart items vat exempt
 var discount_container = []; // discount per person
 var referral_container = []; // referral discount 
+var referral_compute  = [];
 var will_pay = []; // distrubution of payment and balance 
 // search autocomplete for customer
 $("#customer").autocomplete({
@@ -32,15 +33,51 @@ $("#customer").autocomplete({
 		$("#customer").val("");
 		draw_customer(ui);
 		checkIfCustomer();
+		ui.item.new == 1 ? add_cart_ajax("REGFEE","PH001"): void 0;
 		return false;
 	}
 });
 
+
+function create_data_customer(dataitems){
+	var data = [];
+	data["item"] = dataitems;
+	return data;
+}
+
+
+$('#pn_num').change(function(){
+	var bs = $(this).val();
+	var pn = $(this);
+	$.ajax({
+		url:"php/search-bs.php",
+		type:"post",
+		data:{pn:bs},
+		dataType:"json",
+		success:function(j){
+			var data = create_data_customer(j.customer);
+			cart_clients.push(data.item.value);
+			draw_customer(data);
+			checkIfCustomer();
+			for(i in j.item){
+				add_cart_ajax(j.item[i].item_name,"PH001",j.item[i].item_qty);
+			}
+			pn.val("");
+			console.log(cart_clients);
+		}, error:function(x){
+			console.log(x.responseText);
+		}
+	});
+
+})
+
+
 //Prepend Customer  in .Customer-container
 function draw_customer(data){
+	console.log(data);
 	var credit =   data.item.credit; // refferal
 	var maxcredit = credit >= 2 ? 2 : credit;
-	var refbutton = maxcredit != 0 ? `<button class='btn btn-primary btn-sm referral-but' data-activeid = '`+ data.item.value +`'>ADD `+ maxcredit +` Referral </button>`: '';
+	var refbutton = maxcredit != 0 ? `<button class='btn btn-primary btn-sm referral-but' data-activeid = '`+ data.item.value +`' data-refqty= '`+ maxcredit +`'>ADD `+ maxcredit +` Referral </button>`: '';
 
 	$(".customer-draw").addClass("grayout").removeClass("active-customer");	
 	var html = ` 
@@ -48,6 +85,7 @@ function draw_customer(data){
     <div class='row'>
       <div class='col-sm-12'>
         <h4>` + data.item.label +`</h4>
+        <h5 class="next-tier" style='display:none;'>Tier- `+ data.item.next_tier +`</h5>
         <h5 class='hide-in-payment'>Referral Credits(`+credit+`):`+ refbutton + `</h5>
       </div>
     </div>  

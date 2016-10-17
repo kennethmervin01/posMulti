@@ -32,5 +32,68 @@ class Model extends MysqliDb{
 	public function item_get_det($term,$branch){
 		$results = $this->rawQuery("SELECT thitems.Sku,thitems.ItemNo,titems.Description,thitems.StdCost,titems.IsBook FROM thitems INNER JOIN titems ON thitems.ItemNo = titems.ItemNo WHERE thitems.BranchID = '$branch' AND thitems.Sku= '$term'");
 		return $results;
-	}	
+	}
+
+
+	public function insert_real_or($data){
+		$check  = $this->insert("real_or",$data);
+		return $check;
+	}
+
+
+	public function insert_eorderhdr($data){
+		$check  = $this->insert("eorderhdr",$data);
+		return $check;
+	}
+
+
+	public function student_data($custno){
+		$customer = $this->rawQuery("SELECT SurName as sname,MiddleName as mname,FirstName as fname FROM tcustomer WHERE CustNo= $custno");
+		return  $name= " {$customer[0]["sname"]},  {$customer[0]["fname"]} {$customer[0]["MiddleName"]} ";
+	}
+
+	public function student_data_raw($custno){
+		$customer = $this->rawQuery("SELECT * FROM tcustomer WHERE CustNo= $custno");
+		return  $result= $customer[0];
+	}
+
+	//next tier payment of student
+	public function next_tier($custno){
+		$tier = $this->rawQuery("SELECT MAX(TierID + 1) AS next_tier FROM eorderhdr WHERE CustNo='$custno' AND enroll_status ='CMA' AND payment_status  != 'VOID'");
+		if($tier[0]['next_tier']){
+			$desc = $this->rawQuery("SELECT `Description` AS next_tier_string FROM ttier WHERE ID='{$tier[0]['next_tier']}'");
+			return $desc[0]['next_tier_string'];
+		} else {
+			return "A";
+		}
+	}
+
+	public function tier_raw($tier){
+		if($tier != "" || $tier != NULL ){
+			$desc = $this->rawQuery("SELECT `Description` AS next_tier_string FROM ttier WHERE ID='$tier'");	
+			return $desc[0]['next_tier_string'];
+		} else {
+			return "A";
+		}
+	}
+
+
+	public function find_bs($bs,$branch){
+		$result = $this->rawQuery("SELECT * FROM billing_statement as bs INNER JOIN billing_statement_details as bsd ON bs.bs_num = bsd.bs_num AND bs.BranchID = bsd.branch_id WHERE bs.bs_num = '$bs' AND bs.BranchID='$branch' ");
+		$item = array();
+		$x = 0;
+		$student_data = array();
+		foreach($result as $rs) {
+			array_push($item,array("item_name" => $rs['ItemNo'],"item_qty" => $rs['Qnty']));
+			if($x == 0){
+				$custno = $rs['CustNo'];
+				$student_data =  $this->student_data_raw($custno);	
+				$head_bs_tier =  $rs['tier_id'];	
+				$x++;
+			}	
+		}
+		return array("head_bs_tier" => $head_bs_tier, "items" => $item, "customer" => $student_data );
+
+	}
+
 }
