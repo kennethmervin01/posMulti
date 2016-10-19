@@ -125,6 +125,7 @@ $("#compute-now").one("click",function(){
 	});
 });
 
+
 $(".pay-option").click(function(){
 	var	ptype = $(this).data(); 
 	var po = new PaymentOptions(ptype.type,ptype.title);
@@ -148,9 +149,6 @@ $(".payment-container").on("click","#submit-payment",function(){
 			payment[names] = val;
 		}
 	});  
-
-
-
 	var credits = paymentProcess.distribute(payment);
 	paymentProcess.generateData();
 });
@@ -166,7 +164,71 @@ $(".payment-container").on("keyup","#cheque_no",function(event){
 	decimal_only(that);
 });
 
+
+
+$("#dc").change(function(){
+	check_gc_code($(this));
+});
+
 /*************************** Function requirements for cart ui *************************************/
+
+function compute_now_magic(){
+	var cp = new CartProcess();
+	$(".hide-in-payment, .removecart, .remove-discount").fadeOut();
+	$(".make-it-readonly").attr("readonly",true).css("border","none");
+	$(".customer-row").removeClass("active-customer").removeClass("customer-draw");
+	$(".grayout").css({"opacity":"1","filter":"alpha(opacity = 100)"});
+	$("#compute-now").fadeOut();
+	$(".payment-options").show();
+	cp.computeSingle();
+	cp.computeAll(function(x){
+		console.log(x);
+		var sub_total 	= myMoneyFormat(x.subtotal);
+		var disc_total  = myMoneyFormat(x.disctotal);
+		var total       = myMoneyFormat(x.supertotal);
+		$(".subtotal_total_cart").html(sub_total);
+		$(".discount_total_cart").html(disc_total);
+		$(".super_total_cart").html(total);
+	});
+	var po = new PaymentOptions("cash","Cash");
+	po.draw();
+	$(".pay-option").hide();
+	$("#or_payment").val("3600").attr("readonly","readonly");
+}
+
+
+
+function check_gc_code(gc){
+	var gc_code =  gc.val();
+	$.ajax({
+		url:"php/search-gc.php",
+		type:"post",
+		data:{gc:gc_code},
+		dataType:"json",
+		success:function(j){
+			console.log(j);
+			if(active_id != null){
+				add_cart_ajax(j.items.module_type,"PH001",j.items.module_num,function(xcart){
+					if(xcart){ 
+						gc.val("");
+						compute_now_magic();
+						mod_string = j.items.module_num + " " + j.items.module_type;
+						$(".gc_string").html(j.result.result.gc_code + "<br />" + j.items.scholar_type_description + "<br /> " + mod_string );
+					}
+				});
+			} else {
+				new DialogHelper("Hello Teacher","Please Select A Customer").createDialog();
+				gc.val("");
+			}	
+		},
+		error:function(err){
+			console.log(err.responseText);
+		}		
+	});
+}
+
+
+
 
 function decimal_only(that){
 	var val = that.val();
@@ -206,18 +268,15 @@ function add_bundle(bundle,callback){
 		dataType:"json",
 		data:{bundle:bundle,method:"get_bundle"},
 		success:function(j){
-			
 			newItem = new ItemCart(j.itemno,"PH001").drawItemRow(j);
 			callback(bundle);
-
 		},error:function(x){
 			console.log(x);
 		}
-
 	});
 }
 
-function add_cart_ajax(sku,branch,qty=1){
+function add_cart_ajax(sku,branch,qty=1,callback=null){
 	var customerID = active_id;
 	$.ajax({
 		url:"php/search-item.php",
@@ -226,6 +285,9 @@ function add_cart_ajax(sku,branch,qty=1){
 		dataType:"json",
 		success:function(j){
 			newItem = new ItemCart(sku,branch).drawItemRow(j);
+			if(callback){
+				callback(j);
+			}	
 			console.log(cart_container);
 		},error:function(err){
 			console.log(err.responseText);

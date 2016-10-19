@@ -88,7 +88,10 @@ function PaymentOptions(type,title){
 	              <td><input type="text" id="or_payment" name="or_payment"></td>
 	           </tr>
 	           <tr>
-	              <td colspan="2" style="text-align:center;"><button id="submit-payment" name="finalsubmit" value="go" class="btn btn-success btn-lg">Submit</button></td>
+	              <td colspan="2" style="text-align:center;">
+	              <p class="gc_string"></p>
+	              <button id="submit-payment" name="finalsubmit" value="go" class="btn btn-success btn-lg">Submit</button>
+	              </td>
 	           </tr>`; 
 	        return string;   	
 	}                             

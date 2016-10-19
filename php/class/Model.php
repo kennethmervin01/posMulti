@@ -93,7 +93,24 @@ class Model extends MysqliDb{
 			}	
 		}
 		return array("head_bs_tier" => $head_bs_tier, "items" => $item, "customer" => $student_data );
+	}
+
+
+	public function check_valid_gc($gc){
+		$this->where("CustNo",0);
+		$this->where("gc_code",$gc);
+		$result = $this->getOne("scholar_student");
+		if($this->count <= 0){
+			return array("status" => "0", "result" => $result);
+		} else {
+			return array("status" => "1", "result" => $result);
+		}
 
 	}
+
+	public function get_gc_data($type){
+		$this->where("scholar_type_id",$type);
+		return $this->getOne("scholar_type");
+	}	
 
 }
