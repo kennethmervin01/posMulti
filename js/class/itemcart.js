@@ -125,8 +125,9 @@ ItemCart.prototype = {
 			if(gc == 0){
 				this.cart.addToCart(this.sku,this.price,this.qty,this.bookfee,this.lessonfee,this.otherfee,this.totprice,this.vatable);
 			} else {
-				var newOther = this.lessonfee + this.otherfee;
-				this.cart.addToCart(this.sku,this.price,this.qty,this.bookfee,0,newOther,this.totprice,this.vatable);
+				var newOther    = this.lessonfee + this.otherfee;
+				var newVatable  =   this.vatable - this.lessonfee;
+				this.cart.addToCart(this.sku,this.price,this.qty,this.bookfee,0,newOther,this.totprice,newVatable);
 			}
 			this.totalCart();
 		}
