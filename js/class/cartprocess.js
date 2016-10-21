@@ -35,6 +35,7 @@ CartProcess.prototype ={
 			}
 		}; 
 		this.cart.push(ci);
+		console.log(cart_container);
 	},
 	updateCart : function(sku,qty){
 		arr = this.cart;
@@ -146,11 +147,8 @@ CartProcess.prototype ={
 			disctotal:disctotal,
 			supertotal: cart_computations_all[0].total - disctotal 
 		};
-
+		fin_cart = total_cart;
 		callback(total_cart);
-		console.log(cart_computations_single);
-		console.log(cart_computations_all);
-		console.log(discount_container);
 	},
 
 	addDiscount:function(discount){

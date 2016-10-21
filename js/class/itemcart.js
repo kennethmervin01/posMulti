@@ -73,7 +73,6 @@ ItemCart.prototype = {
 		var ref_discounted =0;
 		var ref_tot = 0;
 		var ref_disc_qty = 0;
-
 		if(referral_container[active_id]){
 			$("#item-table-" + active_id + " .discountrefrow").remove();
 			$("#item-table-" + active_id + " tbody tr:last").before("<tr class='discountrefrow'><td colspan='4' style='text-align:center'>Referral Discount</td><td class='rdiscamt'></td></tr>");
@@ -87,8 +86,6 @@ ItemCart.prototype = {
 			}
 			referral_compute[active_id] = {ref_tot:ref_tot,ref_qty:ref_disc_qty};
 		}
-		
-		console.log(referral_compute);
 		return ref_tot;
 	},
 
@@ -106,7 +103,7 @@ ItemCart.prototype = {
 		$(".total-" + active_id).html(tot);
 
 	},
-	drawItemRow: function(item){
+	drawItemRow: function(item,gc=0){
 		var doNow = CartHelper.checkItemExist(this.sku,item.qty,function(myqty,mysku){
 			new ItemCart().updateItemRow(mysku,myqty);
 		}); // already exist
@@ -124,7 +121,13 @@ ItemCart.prototype = {
 				`;
 			$(".row-removable").fadeOut();
 			$("#item-table-" + active_id + " tbody" ).prepend(item_row);
-			this.cart.addToCart(this.sku,this.price,this.qty,this.bookfee,this.lessonfee,this.otherfee,this.totprice,this.vatable);
+			
+			if(gc == 0){
+				this.cart.addToCart(this.sku,this.price,this.qty,this.bookfee,this.lessonfee,this.otherfee,this.totprice,this.vatable);
+			} else {
+				var newOther = this.lessonfee + this.otherfee;
+				this.cart.addToCart(this.sku,this.price,this.qty,this.bookfee,0,newOther,this.totprice,this.vatable);
+			}
 			this.totalCart();
 		}
 	},

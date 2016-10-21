@@ -84,7 +84,7 @@ function PaymentOptions(type,title){
 	           </tr>
 	           `+ addstring +`
 	           <tr>
-	              <td>Amount Paid</td>
+	              <td>Total Payment</td>
 	              <td><input type="text" id="or_payment" name="or_payment"></td>
 	           </tr>
 	           <tr>

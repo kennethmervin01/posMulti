@@ -11,16 +11,19 @@ $db = new Model("localhost","root","","cma_back");
 $data = array(
 	"BranchID" 		 => $branch,
 	"real_or_num"    => $real_or['real_or_num'],
-	"real_or_amount" => $real_or['real_or_amount'],
+	"real_or_amount_paid"    => $real_or['real_or_amount_paid'],
+	"real_or_amount_due" => $real_or['real_or_amount_due'],
 	"real_or_date"   => $real_or['real_or_date'],
 	"real_or_type"   => $real_or['real_or_type'],
 	"real_or_ref"    => '',
 	"real_or_remark" => '',
 	"date_input"     => date("Y-m-d H:i:s"),
 	"balance"        => $real_or['balance'], 
-	"credits"        => $real_or['credits']
+	"credits"        => $real_or['credits'],
+	"scholar_code"   => $real_or['scholar_code'],
+	"real_or_status" => $real_or['real_or_status']
 	);
-/***
+
 
 $real = $db->insert_real_or($data); 
 if($real){
@@ -29,11 +32,10 @@ if($real){
 	$ok = "no";
 }
 
-***/
+
 foreach($client_or as $client){
 	$or_head = $client["or_head"];
 	$payment = paymentfind($willpay,$or_head['custid']);
-	
 	$data_head = array(
 		"PONumber" => "",
 		"BranchID"  => $branch,
@@ -65,8 +67,6 @@ foreach($client_or as $client){
 	);		
 	$or_detail = $client["or_details"];
 } 
-
-
 
 
 function paymentfind($willpay,$custno){

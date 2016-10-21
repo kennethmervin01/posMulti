@@ -35,26 +35,34 @@ PaymentProcess.prototype = {
 	generateData:function(){
 		var real_or = this.genRealOR();
 		var dist_or = this.genDistOR();
+
 		this.sendData(real_or,dist_or);		
 	},
 	genRealOR:function(){
 		var payment = this.payment;
 		var real_or;
+		var scode = gc_container.gc_code ? gc_container.gc_code :  null ;
+		var real_or_status = gc_container.gc_code ?  "AR":  "OR" ;
+		console.log(fin_cart);
 		if(payment.ptype == "cash" || payment.ptype == "directdeposit"){
 			real_or = { // for real or table
 				branchid      : "PH001",
-				real_or_num   : payment.or_payment,
-				real_or_amount: payment.or_payment,
+				real_or_num   : payment.or_number,
+				real_or_amount_paid: payment.or_payment,
+				real_or_amount_due: fin_cart.supertotal,// total gc payment + or payment
 				real_or_date  : payment.or_date, 
 				real_or_type  : payment.ptype, 
 				balance       : this.balance,
-				credits       : this.credit
+				credits       : this.credit,
+				scholar_code  : scode,
+				real_or_status: real_or_status 
 			};
 		} else {
 			 real_or = { // for real or table
 				branchid      : "PH001",
-				real_or_num   : payment.or_payment,
-				real_or_amount: payment.or_payment,
+				real_or_num   : payment.or_number,
+				real_or_amount_paid   : payment.or_payment,
+				real_or_amount_due: fin_cart.supertotal,
 				real_or_date  : payment.or_date, 
 				real_or_type  : payment.ptype, 
 				balance       : this.balance,
@@ -62,21 +70,23 @@ PaymentProcess.prototype = {
 				cheque_num    : payment.cheque_no,
 				cheque_date   : payment.cheque_date,
 				bank_name     : payment.bank_name,
-				bank_branch   : payment.bank_branch  
-
+				bank_branch   : payment.bank_branch,
+				scholar_code  : scode,
+				real_or_status: real_or_status  
 			};
 		}
+		console.log(real_or);
 		return real_or;
 	}, 
 
 	genDistOR:function(){
 	   var clients  =   cart_clients; 
 	   var single_or = [];
-
 	   for( i in clients){
 	   		recollect = this.distHelperSingle(clients[i]);
 	   		single_or.push(recollect);
 	   }
+	   console.log(single_or);
 	   return single_or;
 	},
 

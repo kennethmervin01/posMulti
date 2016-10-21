@@ -139,10 +139,8 @@ $(".payment-container").on("click","#submit-payment",function(){
 		var input = $(this);
 		var names  = input.attr("name");
 		var val    = input.val();
-		//console.log(val);
 		if(val == "" ){
-			//console.log(names);
-			new  DialogHelper("Payment Form","Please Complete the Payment Form").createDialog();
+			new DialogHelper("Payment Form","Please Complete the Payment Form").createDialog();
 			payment = [];
 			return false;
 		} else {
@@ -164,13 +162,43 @@ $(".payment-container").on("keyup","#cheque_no",function(event){
 	decimal_only(that);
 });
 
-
-
 $("#dc").change(function(){
 	check_gc_code($(this));
 });
 
 /*************************** Function requirements for cart ui *************************************/
+
+function check_gc_code(gc){
+	var gc_code =  gc.val();
+	$.ajax({
+		url:"php/search-gc.php",
+		type:"post",
+		data:{gc:gc_code},
+		dataType:"json",
+		success:function(j){
+			if(active_id != null && j.result.status == "1"){
+				add_cart_ajax(j.items.module_type,"PH001",j.items.module_num,function(xcart){
+					if(xcart){ 
+						compute_now_magic();
+						gc_amount = j.items.module_amount * j.items.module_discount;
+						$("#or_payment").val(gc_amount).attr("readonly","readonly");
+						disc_percent = parseFloat(j.items.module_discount) * 100;
+						mod_string = j.items.module_num + " " + j.items.module_type;
+						$(".gc_string").html(j.result.result.gc_code + "<br />" + j.items.scholar_type_description + "<br /> " + mod_string  + "<br />" + disc_percent + "%");
+						gc_container = {custno: active_id, gc_code: j.result.result.gc_code,gc_payment:gc_amount};
+					}
+				});
+			} else { 
+				warning_text = active_id == null ?  "Please Select A Customer" : "Invalid Voucher Code" ;
+				new DialogHelper("Hello Teacher",warning_text).createDialog();
+				gc.val("");
+			}	
+		},
+		error:function(err){
+			console.log(err.responseText);
+		}		
+	});
+}
 
 function compute_now_magic(){
 	var cp = new CartProcess();
@@ -182,7 +210,6 @@ function compute_now_magic(){
 	$(".payment-options").show();
 	cp.computeSingle();
 	cp.computeAll(function(x){
-		console.log(x);
 		var sub_total 	= myMoneyFormat(x.subtotal);
 		var disc_total  = myMoneyFormat(x.disctotal);
 		var total       = myMoneyFormat(x.supertotal);
@@ -193,42 +220,7 @@ function compute_now_magic(){
 	var po = new PaymentOptions("cash","Cash");
 	po.draw();
 	$(".pay-option").hide();
-	$("#or_payment").val("3600").attr("readonly","readonly");
 }
-
-
-
-function check_gc_code(gc){
-	var gc_code =  gc.val();
-	$.ajax({
-		url:"php/search-gc.php",
-		type:"post",
-		data:{gc:gc_code},
-		dataType:"json",
-		success:function(j){
-			console.log(j);
-			if(active_id != null){
-				add_cart_ajax(j.items.module_type,"PH001",j.items.module_num,function(xcart){
-					if(xcart){ 
-						gc.val("");
-						compute_now_magic();
-						mod_string = j.items.module_num + " " + j.items.module_type;
-						$(".gc_string").html(j.result.result.gc_code + "<br />" + j.items.scholar_type_description + "<br /> " + mod_string );
-					}
-				});
-			} else {
-				new DialogHelper("Hello Teacher","Please Select A Customer").createDialog();
-				gc.val("");
-			}	
-		},
-		error:function(err){
-			console.log(err.responseText);
-		}		
-	});
-}
-
-
-
 
 function decimal_only(that){
 	var val = that.val();
@@ -284,11 +276,12 @@ function add_cart_ajax(sku,branch,qty=1,callback=null){
 		data:{term:sku, branch:branch,method:"get_item", qty:qty},	
 		dataType:"json",
 		success:function(j){
-			newItem = new ItemCart(sku,branch).drawItemRow(j);
 			if(callback){
+				newItem = new ItemCart(sku,branch).drawItemRow(j,1);
 				callback(j);
+			} else {
+				newItem = new ItemCart(sku,branch).drawItemRow(j);
 			}	
-			console.log(cart_container);
 		},error:function(err){
 			console.log(err.responseText);
 		}

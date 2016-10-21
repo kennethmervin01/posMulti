@@ -7,6 +7,8 @@ var discount_container = []; // discount per person
 var referral_container = []; // referral discount 
 var referral_compute  = [];
 var will_pay = []; // distrubution of payment and balance 
+var gc_container = [];
+var fin_cart = {};
 // search autocomplete for customer
 $("#customer").autocomplete({
 	source:function(request,response){
@@ -74,7 +76,6 @@ $('#pn_num').change(function(){
 
 //Prepend Customer  in .Customer-container
 function draw_customer(data){
-	console.log(data);
 	var credit =   data.item.credit; // refferal
 	var maxcredit = credit >= 2 ? 2 : credit;
 	var refbutton = maxcredit != 0 ? `<button class='btn btn-primary btn-sm referral-but' data-activeid = '`+ data.item.value +`' data-refqty= '`+ maxcredit +`'>ADD `+ maxcredit +` Referral </button>`: '';
