@@ -1,82 +1,53 @@
 <?php
 require_once("class/MysqliDb.php");
 require_once("class/Model.php");
-$real_or   =    $_POST['real_or'];
+require_once("class/StrHtml.php");
+require_once("class/Sync.php");
+
+$real_or   =  $_POST['real_or'];
 $client_or =  $_POST['dist_or'];
 $willpay   =  $_POST['willpay'];
-
+$client_id = "";
 $items = []; 
-$branch = "PH001";
-$db = new Model("localhost","root","","cma_back");
-$data = array(
-	"BranchID" 		 => $branch,
-	"real_or_num"    => $real_or['real_or_num'],
-	"real_or_amount_paid"    => $real_or['real_or_amount_paid'],
-	"real_or_amount_due" => $real_or['real_or_amount_due'],
-	"real_or_date"   => $real_or['real_or_date'],
-	"real_or_type"   => $real_or['real_or_type'],
-	"real_or_ref"    => '',
-	"real_or_remark" => '',
-	"date_input"     => date("Y-m-d H:i:s"),
-	"balance"        => $real_or['balance'], 
-	"credits"        => $real_or['credits'],
-	"scholar_code"   => $real_or['scholar_code'],
-	"real_or_status" => $real_or['real_or_status']
-	);
+$branch = "PH002";
+$credits_save = 0;
+$data_heads = array();
+$db = new Model;
+$sync = new Sync("PH002","Dz73ZtTAu1");
 
-
-$real = $db->insert_real_or($data); 
-if($real){
-	$ok = $real_or;
-} else {
-	$ok = "no";
-}
-
-
+// Setting Variables For eorderhdr
+$count_client = count($client_or); 
+$letter_str = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N");
+$x = 0;
+$ok = $db->save_data_realOR($branch,$real_or); // save real or
+ 
 foreach($client_or as $client){
 	$or_head = $client["or_head"];
-	$payment = paymentfind($willpay,$or_head['custid']);
-	$data_head = array(
-		"PONumber" => "",
-		"BranchID"  => $branch,
-		"Date"   => date("Y-m-d"),
-		"CustNo" => $or_head['custid'],
-		"Name"   =>"" ,
-		"SoldBy" => "",
-		"PayCode" =>    $real_or['real_or_type'],
-		"PayDate" =>    $real_or['real_or_date'],
-		"ItemTotal" =>  $or_head['subtotal'],
-		"ItemCost"  =>  $or_head['subtotal'],
-		"DiscRate"  =>  $or_head['discremark'],
-		"DiscAmount" => $or_head['discount'] + $or_head['refdiscount'] ,
-		"OrderTotal" => $or_head['fintotal'],
-		"RemitAmt"  =>  $payment['remit_amt'],
-		"OrderBal" =>   $payment['balance'],
-		"BankName" => "",
-		"Branch"   => "",
-		"CheckNo"  => "",
-		"CheckDate" => "",
-		"ORNumber" => $real_or['real_or_num'],
-		"TierID"   => "",
-		"payment_status" => "PAID",
-		"bs_number" => "",
-		"enroll_status" => "CMA",
-		"ref_qty" => 	$or_head['refqty'],
-		"special_discount" => $or_head['disckey'], 
-		"real_or_num" => $real_or['real_or_num'],
-	);		
-	$or_detail = $client["or_details"];
-} 
-
-
-function paymentfind($willpay,$custno){
-	foreach($willpay as $wpay){
-		if($wpay["custno"] == $custno){
-			$payment = array("balance" => $wpay["balance"], "remit_amt" => $wpay["remit_amt"]);
-			break;
-		}
-	}
-	return $payment;
+	$client_id .="{$or_head['custid']},";
+	$student_data = $db->student_data_raw($or_head['custid']);
+	$payment = $db->payment_find($willpay,$or_head['custid']);
+	$new_po = $db->generate_po($branch); // generate  new po
+	$re_or  = $count_client == 1 ? 	$real_or['real_or_num'] : $real_or['real_or_num']."-".$letter_str[$x];
+	$data_head = $db->init_data_head($branch,$new_po,$student_data,$real_or,$or_head,$payment,$client,$re_or); // create data variable for table eorderhdr 
+	$data_sync_remit = $payment['remit_amt']; // amount payment
+	$cfee = $db->compute_data_fees($data_sync_remit,$or_head); // calcute balance and  payment to bookfee -> otherfee -> lessonfee
+	// creating variables for syncing	
+	$data_raw_heads[$x] = $db->init_data_for_sync($branch,$or_head,$real_or,$payment,$client,$cfee['bfee'],$cfee['lfee'],$cfee['ofee'],$re_or);  
+	$x++;
+	
+	// save to eorderhdr,eorderdtl and balance table
+	$db->save_to_eorderhdr($data_head);	 
+	$db->save_to_eorderdtl($client["or_details"],$new_po);
+	$db->save_balance($cfee,$or_head,$client,$re_or); 
 }
 
-echo json_encode(array("OK" => $data, "OK2" => $data_head));
+$credits_save = $db->save_credits($real_or,$client_id); // save credits
+
+if($ok == "yes"){
+	$stest = $sync->init_sync_pay_data($data_raw_heads);
+	$sonline = $sync->init_sync_online_practice($data_raw_heads);
+	echo json_encode(array("real_or" => $ok, "tcredits" => $credits_save, "cc" => $stest, "for_sync" => $data_raw_heads));
+}
+
+
+

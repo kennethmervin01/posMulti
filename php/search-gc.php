@@ -1,7 +1,7 @@
 <?php
 require_once("class/MysqliDb.php");
 require_once("class/Model.php");
-$db = new Model("localhost","root","","cma_back");
+$db = new Model;
 $results = $db->check_valid_gc($_POST['gc']);
 $data = array();
 if($results['status'] == '1'){

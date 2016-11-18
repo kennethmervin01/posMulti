@@ -1,10 +1,10 @@
 <?php
 require_once("class/MysqliDb.php");
 require_once("class/Model.php");
-$branch = "PH001";
+$branch = "PH002";
 
 function search_item($term,$branch){
-	$db = new Model(array("host" => "localhost", "username" => "root", "password" => "", "charset" => "utf-8" , "db" => "cma_back" ) );
+	$db = new Model;
 	$results = $db->item_search_term($term,$branch);
 	foreach($results as $result):
 		$desc = $result['Description'];
@@ -21,7 +21,7 @@ function search_item($term,$branch){
 
 
 function fees($sku,$branch,$price){
-	$db = new Model(array("host" => "localhost", "username" => "root", "password" => "", "charset" => "utf-8" , "db" => "cma_back" ) );
+	$db = new Model;
 	$db->where("Code", $sku);
 	$db->where("BranchID",$branch);
 	$fees = $db->getOne("fees");
@@ -41,15 +41,13 @@ function fees($sku,$branch,$price){
 }
 
 function get_item($sku,$branch){
-	$db = new Model(array("host" => "localhost", "username" => "root", "password" => "", "charset" => "utf-8" , "db" => "cma_back" ));
+	$db = new Model;
 	$results = $db->item_get_det($sku,$branch);
 	$fee = fees($sku,$branch,$results[0]['StdCost']);	
 	$vatable  = $fee['vatable'];
 	if( $results[0]['IsBook'] == "Yes"){
 		$vatable = 0;
 	}
-
-
 	echo json_encode(
 		array(
 			"desc"      => $results[0]['Description'],
@@ -66,7 +64,7 @@ function get_item($sku,$branch){
 
 
 function get_bundle($bundle,$branch){
-	$db = new Model(array("host" => "localhost", "username" => "root", "password" => "", "charset" => "utf-8" , "db" => "cma_back" ));
+	$db = new Model;
 	$results = $db->item_get_det($bundle["sku"],$branch);
 	$fee = fees($bundle["sku"],$branch,$results[0]['StdCost']);	
 	$vatable  = $fee['vatable'];
@@ -92,6 +90,6 @@ if($_POST['method'] != "get_bundle"):
 	$func = $_POST['method'];
 	$func($_POST['term'],$_POST['branch']);
 else :
-	get_bundle($_POST['bundle'],"PH001");
+	get_bundle($_POST['bundle'],"PH002");
 endif;	
 ?>

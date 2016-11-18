@@ -27,15 +27,14 @@ PaymentProcess.prototype = {
 			}
 		}
 
-		this.willpay = will_pay;
-		this.credit = or_payment;	
+		this.willpay  = will_pay;
+		this.credit   = or_payment;	
 		this.balance  = total_balance; 
 	}, 
 
 	generateData:function(){
 		var real_or = this.genRealOR();
 		var dist_or = this.genDistOR();
-
 		this.sendData(real_or,dist_or);		
 	},
 	genRealOR:function(){
@@ -46,7 +45,7 @@ PaymentProcess.prototype = {
 		console.log(fin_cart);
 		if(payment.ptype == "cash" || payment.ptype == "directdeposit"){
 			real_or = { // for real or table
-				branchid      : "PH001",
+				branchid      : "PH002",
 				real_or_num   : payment.or_number,
 				real_or_amount_paid: payment.or_payment,
 				real_or_amount_due: fin_cart.supertotal,// total gc payment + or payment
@@ -55,11 +54,15 @@ PaymentProcess.prototype = {
 				balance       : this.balance,
 				credits       : this.credit,
 				scholar_code  : scode,
-				real_or_status: real_or_status 
+				real_or_status: real_or_status,
+				cheque_num    : "",
+				cheque_date   : "",
+				bank_name     : "",
+				bank_branch   : "" 
 			};
 		} else {
 			 real_or = { // for real or table
-				branchid      : "PH001",
+				branchid      : "PH002",
 				real_or_num   : payment.or_number,
 				real_or_amount_paid   : payment.or_payment,
 				real_or_amount_due: fin_cart.supertotal,
@@ -95,8 +98,12 @@ PaymentProcess.prototype = {
 		var single =  cart_computations_single;
 		var single_or = [];
 		var cart_single = [];
+		var the_tier = "";
 		for (i in cart){
 			if(cart[i].customerid == clientID){
+				if(cart[i].sku == "MODREG" || cart[i].sku == "MODFLEX" || cart[i].sku == "MODSF"){
+					the_tier = $("#next-tier-"+ cart[i].customerid).data("tierid");
+				}
 				cart_single.push(cart[i]);
 			}
 		}
@@ -105,7 +112,8 @@ PaymentProcess.prototype = {
 			if(single[i].custid == clientID){
 				single_or = {
 					or_head : single[i],
-					or_details: cart_single
+					or_details: cart_single,
+					or_tier: the_tier
 				}
 				break;
 			}
@@ -115,14 +123,43 @@ PaymentProcess.prototype = {
 
 	sendData:function(real_or,dist_or){
 		var willpay = this.willpay;
+		$(".percent").show();
 		$.ajax({
+			xhr: function()
+			  {
+			    var xhr = new window.XMLHttpRequest();
+			    //Upload progress
+			    xhr.upload.addEventListener("progress", function(evt){
+			      if (evt.lengthComputable) {
+			      	$(".percent_text").html("Saving Please Wait..");
+			        var percentComplete = evt.loaded / evt.total;
+			        //Do something with upload progress
+			        load_percent = parseInt( (evt.loaded / evt.total * 50), 10);
+			        $(".percent").html(load_percent + "%");
+			        console.log(percentComplete);
+			      }
+			    }, false);
+			    //Download progress
+			    xhr.addEventListener("progress", function(evt){
+			      if (evt.lengthComputable) {
+			        var percentComplete = evt.loaded / evt.total;
+			        //Do something with download progress
+			        load_percent = parseInt( (evt.loaded / evt.total * 50) + 50, 10);
+			        $(".percent").html(load_percent + "%");
+			  		if(load_percent == 100){
+			  			$(".percent_text").html("Saved Complete");
+			  		}
+			      }
+			    }, false);
+			    return xhr;
+			  },
 			url:"php/sendData.php",
 			type:"post",
 			data: { real_or:real_or, dist_or:dist_or,willpay:willpay},
 			dataType:"json",
 			success:function(j){
 				console.log(j);
-				alert("Succes");
+				//alert("Succes");
 			},
 			error:function(xhr){
 				console.log(xhr.responseText);

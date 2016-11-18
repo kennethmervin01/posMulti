@@ -12,8 +12,6 @@ function CartProcess(){
 	this.customerid = active_id;
 	this.cart =  cart_container;
 }
-
-
 CartProcess.prototype ={
 	constructor:CartProcess,
 	addToCart : function(sku,price,qty,bookfee,lessonfee,otherfee,totprice,vatable){
@@ -97,6 +95,8 @@ CartProcess.prototype ={
 					}
 				}
 			}
+
+
 			var pushItem = {
 				custid: custno,
 				bookfee: bookfee_sum,

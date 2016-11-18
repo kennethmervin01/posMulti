@@ -35,7 +35,7 @@ $("#customer").autocomplete({
 		$("#customer").val("");
 		draw_customer(ui);
 		checkIfCustomer();
-		ui.item.new == 1 ? add_cart_ajax("REGFEE","PH001"): void 0;
+		ui.item.new == 1 ? add_cart_ajax("REGFEE","PH002"): void 0;
 		return false;
 	}
 });
@@ -62,7 +62,7 @@ $('#pn_num').change(function(){
 			draw_customer(data);
 			checkIfCustomer();
 			for(i in j.item){
-				add_cart_ajax(j.item[i].item_name,"PH001",j.item[i].item_qty);
+				add_cart_ajax(j.item[i].item_name,"PH002",j.item[i].item_qty);
 			}
 			pn.val("");
 			console.log(cart_clients);
@@ -86,7 +86,7 @@ function draw_customer(data){
     <div class='row'>
       <div class='col-sm-12'>
         <h4>` + data.item.label +`</h4>
-        <h5 class="next-tier" style='display:none;'>Tier- `+ data.item.next_tier +`</h5>
+        <h5 class="next-tier" id="next-tier-`+ data.item.value+`" data-tierid ='`+ data.item.next_tier_id +`' style='display:none;'>Tier- `+ data.item.next_tier +`</h5>
         <h5 class='hide-in-payment'>Referral Credits(`+credit+`):`+ refbutton + `</h5>
       </div>
     </div>  

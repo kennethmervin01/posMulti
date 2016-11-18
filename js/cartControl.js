@@ -4,7 +4,7 @@ $("#search-book").autocomplete({
 		$.ajax({
 			url:"php/search-item.php",
 			type:"post",
-			data:{term:request.term, branch:"PH001", method:"search_item"},
+			data:{term:request.term, branch:"PH002", method:"search_item"},
 			dataType:"json",
 			success:function(data){
 				console.log(data);
@@ -177,7 +177,7 @@ function check_gc_code(gc){
 		dataType:"json",
 		success:function(j){
 			if(active_id != null && j.result.status == "1"){
-				add_cart_ajax(j.items.module_type,"PH001",j.items.module_num,function(xcart){
+				add_cart_ajax(j.items.module_type,"PH002",j.items.module_num,function(xcart){
 					if(xcart){ 
 						compute_now_magic();
 						gc_amount = j.items.module_amount * j.items.module_discount;
@@ -243,13 +243,13 @@ function draw_preselect_items(item){
 function add_cart(item){
 	var item_num   =  Object.size(item.data());
 	for(var i = 0 ; i <= item_num - 1; i++) {
-		add_cart_ajax(item.data("sku" + i),"PH001");
+		add_cart_ajax(item.data("sku" + i),"PH002");
 	}
 }
 
 function add_cart_book(item){
 	var customerID = active_id;
-	add_cart_ajax(item,"PH001");
+	add_cart_ajax(item,"PH002");
 }
 
 
@@ -260,7 +260,7 @@ function add_bundle(bundle,callback){
 		dataType:"json",
 		data:{bundle:bundle,method:"get_bundle"},
 		success:function(j){
-			newItem = new ItemCart(j.itemno,"PH001").drawItemRow(j);
+			newItem = new ItemCart(j.itemno,"PH002").drawItemRow(j);
 			callback(bundle);
 		},error:function(x){
 			console.log(x);
